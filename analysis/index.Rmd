@@ -8,6 +8,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-1. Check [this]() for the text classification using tidy data principles. A lot of pipes. 
+1. Check [this](silge_text_classification.html) for the text classification using tidy data principles. A lot of pipes. 
 
 2. 
