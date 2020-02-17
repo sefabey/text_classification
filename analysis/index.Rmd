@@ -8,6 +8,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-1. Check [this](silge_text_classification.html) for the text classification using tidy data principles. A lot of pipes. 
+1. Check [this](silge_text_classification.html) for text classification using tidy data principles. Expect a lot of pipes. 
 
-2. 
+2. Check [this](topic_detection.html) for topic detection and a naive topic labelling tool based on probable bigrams. The results are very interesting.
