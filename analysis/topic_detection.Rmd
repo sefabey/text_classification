@@ -1,0 +1,241 @@
+---
+title: "topic_detection"
+author: "Sefa Ozalp"
+date: "2020-02-17"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Introduction
+
+```{r}
+library(tidyverse)
+
+# 1. preprocessing======
+
+# **1.1. read in data====
+spike1_raw <- list.files(here::here("data/spike_1/"), full.names = T) %>% 
+  map_dfr(~read_csv(.) %>% select(-TITLE, -DATELINE))
+```
+
+```{r}
+## **1.2. select distinct headlines====
+spike1_unique <- spike1_raw %>% 
+  mutate(headline_low=str_to_lower(HEADLINE)) %>% 
+  distinct(headline_low, .keep_all = T)%>% 
+  mutate(headline_id=rownames(.)) %>% 
+  select(headline_id, everything())
+# looks like there are still duplicates, wow.
+
+## **1.3. parse date column properly====
+spike1_unique <- spike1_unique%>%
+  mutate(date_parsed= str_sub(DATE, start = 1L, end = 17L) %>%
+           str_trim() %>% 
+           lubridate::mdy())
+
+spike1_unique %>% select(date_parsed) %>% str() #parsed correctly
+```
+
+```{r}
+## **1.4. create a rather standardised publication column====
+
+spike1_unique %>% 
+  select(PUBLICATION) %>% 
+  distinct() # 21 publications
+
+spike1_unique <- spike1_unique %>% 
+  mutate(publication_simplified= case_when(
+      str_detect(string = PUBLICATION, pattern = regex("mail", ignore_case = T)  ) ~ "Daily Mail",
+      str_detect(string = PUBLICATION, pattern = regex("mirror", ignore_case = T)  ) ~ "Daily Mirror",
+      str_detect(string = PUBLICATION, pattern = regex("people", ignore_case = T)  ) ~ "People",#exclude
+      str_detect(string = PUBLICATION, pattern = regex("star", ignore_case = T)  ) ~ "Daily Star", #exclude
+      str_detect(string = PUBLICATION, pattern = regex("express", ignore_case = T)  ) ~ "The Express",
+      str_detect(string = PUBLICATION, pattern = regex("independent", ignore_case = T)  ) ~ "The Independent",
+      str_detect(string = PUBLICATION, pattern = regex("telegraph", ignore_case = T)  ) ~ "Daily Telegraph",
+      str_detect(string = PUBLICATION, pattern = regex("guardian", ignore_case = T)  ) ~ "The Guardian",
+      str_detect(string = PUBLICATION, pattern = regex("observer", ignore_case = T)  ) ~ "The Observer",
+      str_detect(string = PUBLICATION, pattern = regex(" sun ", ignore_case = T)  ) ~ "The Sun",
+      str_detect(string = PUBLICATION, pattern = regex("times", ignore_case = T)  ) ~ "Times"
+    )
+  )
+spike1_unique %>% 
+  select(publication_simplified) %>% 
+  distinct() #11 publications, cool.
+
+# **1.5. add publication type and politics==== 
+spike1_unique <- spike1_unique %>% 
+  mutate( publication_politics= case_when(
+    str_detect(string = publication_simplified, pattern = regex("mail", ignore_case = T)  ) ~ "right",
+    str_detect(string = publication_simplified, pattern = regex("mirror", ignore_case = T)  ) ~ "centre-left",
+    str_detect(string = publication_simplified, pattern = regex("people", ignore_case = T)  ) ~ "centre-left",#exclude
+    str_detect(string = publication_simplified, pattern = regex("star", ignore_case = T)  ) ~ "non-political", #exclude
+    str_detect(string = publication_simplified, pattern = regex("express", ignore_case = T)  ) ~ "right",
+    str_detect(string = publication_simplified, pattern = regex("independent", ignore_case = T)  ) ~ "centre",
+    str_detect(string = publication_simplified, pattern = regex("telegraph", ignore_case = T)  ) ~ "centre-right",
+    str_detect(string = publication_simplified, pattern = regex("guardian", ignore_case = T)  ) ~ "centre-left",
+    str_detect(string = publication_simplified, pattern = regex("observer", ignore_case = T)  ) ~ "centre-left",
+    str_detect(string = publication_simplified, pattern = regex("the sun", ignore_case = T)  ) ~ "right",
+    str_detect(string = publication_simplified, pattern = regex("times", ignore_case = T)  ) ~ "centre-right"
+  )
+  ) %>% 
+  mutate(publication_format= case_when(
+    str_detect(string = publication_simplified, pattern = regex("mail", ignore_case = T)  ) ~ "tabloid",
+    str_detect(string = publication_simplified, pattern = regex("mirror", ignore_case = T)  ) ~ "tabloid",
+    str_detect(string = publication_simplified, pattern = regex("people", ignore_case = T)  ) ~ "tabloid",
+    str_detect(string = publication_simplified, pattern = regex("star", ignore_case = T)  ) ~ "tabloid",
+    str_detect(string = publication_simplified, pattern = regex("express", ignore_case = T)  ) ~ "tabloid",
+    str_detect(string = publication_simplified, pattern = regex("independent", ignore_case = T)  ) ~ "online",
+    str_detect(string = publication_simplified, pattern = regex("telegraph", ignore_case = T)  ) ~ "broadsheet",
+    str_detect(string = publication_simplified, pattern = regex("guardian", ignore_case = T)  ) ~ "broadsheet", #i guess it's tabloid sized now
+    str_detect(string = publication_simplified, pattern = regex("observer", ignore_case = T)  ) ~ "broadsheet",
+    str_detect(string = publication_simplified, pattern = regex("the sun", ignore_case = T)  ) ~ "tabloid",
+    str_detect(string = publication_simplified, pattern = regex("times", ignore_case = T)  ) ~ "broadsheet"
+  )
+  )
+
+# **1.6. take a look at some summaries====
+spike1_unique %>% group_by(publication_simplified) %>% summarise(n=n())
+spike1_unique %>% group_by(publication_politics) %>% summarise(n=n())
+spike1_unique %>% group_by(publication_format) %>% summarise(n=n())
+spike1_unique %>% group_by(publication_simplified,publication_format,publication_politics) %>% summarise(n=n())
+```
+
+
+```{r}
+library(topicmodels)
+library(tm)
+spike1_tm <- spike1_unique %>% 
+  select(headline_low)
+
+headlines_corpus <- Corpus(VectorSource(spike1_tm)) %>% 
+  tm_map( removeWords, stopwords("english")) %>% 
+  tm_map( removeWords, stopwords("SMART"))#remove stop words
+headlines_dtm <- DocumentTermMatrix(headlines_corpus)
+headlines_lda <- LDA(headlines_dtm, k=10, control = list(seed=1234))
+
+headlines_lda %>% summary()
+
+library(tidytext)
+headlines_topics <- tidy(headlines_lda, matrix="beta")
+headlines_topics
+
+
+headlines_top_terms <- headlines_topics %>%
+  group_by(topic) %>%
+  top_n(15, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+headlines_top_terms
+
+headlines_top_terms %>%
+  mutate(term = reorder(term, beta)) %>%
+  ggplot(aes(term, beta, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  coord_flip()+
+  labs(title="Spike1")+
+  hrbrthemes::theme_ipsum_rc()
+```
+
+## Enter Text miner
+```{r}
+library(textmineR)
+
+```
+
+```{r}
+headlines_textminer_dtm <- CreateDtm(doc_vec = spike1_unique$headline_low,
+            doc_names = spike1_unique$headline_id,
+            ngram_window = c(1, 3),
+            stopword_vec = c(tm::stopwords("english"), # stopwords from tm
+                            tm::stopwords("SMART")), # this is the default value
+            lower = TRUE,
+            remove_punctuation = FALSE,
+            remove_numbers = FALSE, 
+            verbose = TRUE,
+            cpus = 4)
+
+
+
+optimise_k_func <- function(x){
+headlines_textminer_model <- FitLdaModel(dtm = headlines_textminer_dtm, 
+                     k = x, 
+                     iterations = 200, # i recommend a larger value, 500 or more
+                     alpha = 0.1, # this is the default value
+                     beta = 0.05, # this is the default value
+                     cpus = 4) 
+
+headlines_textminer_model$r2 <- CalcTopicModelR2(dtm = headlines_textminer_dtm, 
+                             phi = headlines_textminer_model$phi,
+                             theta = headlines_textminer_model$theta,
+                             cpus = 4)
+
+headlines_textminer_model$coherence <- CalcProbCoherence(phi = headlines_textminer_model$phi,
+                                                         dtm = headlines_textminer_dtm, 
+                                                         M = 5)
+
+results <- tibble(k_value=x,r2=headlines_textminer_model$r2, coherence=headlines_textminer_model$coherence)
+print(results)
+}
+
+k_values <- seq(5,100,5)
+library(furrr)
+plan(multicore)
+optimise_k_results <- future_map_dfr(k_values,optimise_k_func)
+
+optimise_k_results %>% 
+  group_by(k_value, r2) %>% 
+  summarise(coherence=mean(coherence)) %>% View()
+
+
+headlines_textminer_model <- FitLdaModel(dtm = headlines_textminer_dtm, 
+                                         k = 40, 
+                                         iterations = 1000, # i recommend a larger value, 500 or more
+                                         alpha = 0.1, # this is the default value
+                                         beta = 0.05, # this is the default value
+                                         cpus = 4) 
+
+headlines_textminer_model$ll <- CalcLikelihood(dtm = headlines_textminer_dtm, 
+                           phi = headlines_textminer_model$phi, 
+                           theta = headlines_textminer_model$theta,
+                           cpus = 2)
+headlines_textminer_model$ll
+
+headlines_textminer_model$coherence <- CalcProbCoherence(phi = headlines_textminer_model$phi, dtm = headlines_textminer_dtm, M = 5)
+summary(headlines_textminer_model$coherence)
+headlines_textminer_model$coherence %>% hist(main="Histogram of probabilistic coherence")
+
+
+headlines_textminer_model$top_terms <- GetTopTerms(phi = headlines_textminer_model$phi, M = 15)
+head(headlines_textminer_model$top_terms,15) %>% View()
+
+
+headlines_textminer_model$prevalence <- colSums(headlines_textminer_model$theta) / sum(headlines_textminer_model$theta) * 100
+
+# textmineR has a naive topic labeling tool based on probable bigrams
+headlines_textminer_model$labels <- LabelTopics(assignments = headlines_textminer_model$theta > 0.05, 
+                            dtm = headlines_textminer_dtm,
+                            M = 1)
+
+head(headlines_textminer_model$labels)
+
+
+headlines_textminer_model$summary <- data.frame(topic = rownames(headlines_textminer_model$phi),
+                           label = headlines_textminer_model$labels,
+                           coherence = round(headlines_textminer_model$coherence, 3),
+                           prevalence = round(headlines_textminer_model$prevalence,3),
+                           top_terms = apply(headlines_textminer_model$top_terms, 2, function(x){
+                             paste(x, collapse = ", ")
+                           }),
+                           stringsAsFactors = FALSE)
+
+headlines_textminer_model$summary[ order(headlines_textminer_model$summary$prevalence, decreasing = TRUE) , ][ 1:40 , ] %>%
+  write_csv(here::here("data/topic_models_spike1.csv")) #it seems k=80 is the best performing model but too many topics. k=40 is not too bad as well
+
+headlines_textminer_model$summary[ order(headlines_textminer_model$summary$prevalence, decreasing = TRUE) , ][ 1:40 , ] %>% 
+  as_tibble() %>% 
+  rmarkdown::paged_table()
+```
+
