@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Sefa Ozalp" />
+
+<meta name="date" content="2020-02-17" />
+
+<title>topic_detection</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">text_classification</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">topic_detection</h1>
+<h4 class="author">Sefa Ozalp</h4>
+<h4 class="date">2020-02-17</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2020-02-17
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>text_classification/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.4.0). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20200216code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20200216)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20200216code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20200216)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomsefabeytextclassificationtree520c4f4b9c5dcd3e6c613807e55cfd6b0f4ed6a2targetblank520c4f4a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/sefabey/text_classification/tree/520c4f4b9c5dcd3e6c613807e55cfd6b0f4ed6a2" target="_blank">520c4f4</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomsefabeytextclassificationtree520c4f4b9c5dcd3e6c613807e55cfd6b0f4ed6a2targetblank520c4f4a" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+
+Untracked files:
+    Untracked:  .DS_Store
+    Untracked:  data/spike_1/
+
+Unstaged changes:
+    Modified:   analysis/index.Rmd
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the R Markdown and HTML files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view them.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/sefabey/text_classification/blob/520c4f4b9c5dcd3e6c613807e55cfd6b0f4ed6a2/analysis/topic_detection.Rmd" target="_blank">520c4f4</a>
+</td>
+<td>
+Sefa Ozalp
+</td>
+<td>
+2020-02-17
+</td>
+<td>
+add topic detection using textmineR
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>── Attaching packages ────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>✔ ggplot2 3.2.1     ✔ purrr   0.3.2
+✔ tibble  2.1.3     ✔ dplyr   0.8.3
+✔ tidyr   1.0.0     ✔ stringr 1.4.0
+✔ readr   1.3.1     ✔ forcats 0.4.0</code></pre>
+<pre><code>── Conflicts ───────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code># 1. preprocessing======
+
+# **1.1. read in data====
+spike1_raw &lt;- list.files(here::here(&quot;data/spike_1/&quot;), full.names = T) %&gt;% 
+  map_dfr(~read_csv(.) %&gt;% select(-TITLE, -DATELINE))</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  BYLINE = col_character(),
+  DATE = col_character(),
+  DATELINE = col_logical(),
+  HEADLINE = col_character(),
+  LENGTH = col_character(),
+  PUBLICATION = col_character(),
+  SECTION = col_character(),
+  TITLE = col_logical()
+)</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  BYLINE = col_character(),
+  DATE = col_character(),
+  DATELINE = col_logical(),
+  HEADLINE = col_character(),
+  LENGTH = col_character(),
+  PUBLICATION = col_character(),
+  SECTION = col_character(),
+  TITLE = col_logical()
+)
+Parsed with column specification:
+cols(
+  BYLINE = col_character(),
+  DATE = col_character(),
+  DATELINE = col_logical(),
+  HEADLINE = col_character(),
+  LENGTH = col_character(),
+  PUBLICATION = col_character(),
+  SECTION = col_character(),
+  TITLE = col_logical()
+)</code></pre>
+<pre class="r"><code>## **1.2. select distinct headlines====
+spike1_unique &lt;- spike1_raw %&gt;% 
+  mutate(headline_low=str_to_lower(HEADLINE)) %&gt;% 
+  distinct(headline_low, .keep_all = T)%&gt;% 
+  mutate(headline_id=rownames(.)) %&gt;% 
+  select(headline_id, everything())
+# looks like there are still duplicates, wow.
+
+## **1.3. parse date column properly====
+spike1_unique &lt;- spike1_unique%&gt;%
+  mutate(date_parsed= str_sub(DATE, start = 1L, end = 17L) %&gt;%
+           str_trim() %&gt;% 
+           lubridate::mdy())
+
+spike1_unique %&gt;% select(date_parsed) %&gt;% str() #parsed correctly</code></pre>
+<pre><code>Classes &#39;spec_tbl_df&#39;, &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    3384 obs. of  1 variable:
+ $ date_parsed: Date, format: &quot;2016-10-31&quot; &quot;2016-11-01&quot; ...</code></pre>
+<pre class="r"><code>## **1.4. create a rather standardised publication column====
+
+spike1_unique %&gt;% 
+  select(PUBLICATION) %&gt;% 
+  distinct() # 21 publications</code></pre>
+<pre><code># A tibble: 21 x 1
+   PUBLICATION                     
+   &lt;chr&gt;                           
+ 1 The Independent (United Kingdom)
+ 2 mirror.co.uk                    
+ 3 MailOnline                      
+ 4 Express Online                  
+ 5 The Guardian                    
+ 6 The Daily Telegraph (London)    
+ 7 The Express                     
+ 8 i-Independent Print Ltd         
+ 9 telegraph.co.uk                 
+10 The Observer (London)           
+# … with 11 more rows</code></pre>
+<pre class="r"><code>spike1_unique &lt;- spike1_unique %&gt;% 
+  mutate(publication_simplified= case_when(
+      str_detect(string = PUBLICATION, pattern = regex(&quot;mail&quot;, ignore_case = T)  ) ~ &quot;Daily Mail&quot;,
+      str_detect(string = PUBLICATION, pattern = regex(&quot;mirror&quot;, ignore_case = T)  ) ~ &quot;Daily Mirror&quot;,
+      str_detect(string = PUBLICATION, pattern = regex(&quot;people&quot;, ignore_case = T)  ) ~ &quot;People&quot;,#exclude
+      str_detect(string = PUBLICATION, pattern = regex(&quot;star&quot;, ignore_case = T)  ) ~ &quot;Daily Star&quot;, #exclude
+      str_detect(string = PUBLICATION, pattern = regex(&quot;express&quot;, ignore_case = T)  ) ~ &quot;The Express&quot;,
+      str_detect(string = PUBLICATION, pattern = regex(&quot;independent&quot;, ignore_case = T)  ) ~ &quot;The Independent&quot;,
+      str_detect(string = PUBLICATION, pattern = regex(&quot;telegraph&quot;, ignore_case = T)  ) ~ &quot;Daily Telegraph&quot;,
+      str_detect(string = PUBLICATION, pattern = regex(&quot;guardian&quot;, ignore_case = T)  ) ~ &quot;The Guardian&quot;,
+      str_detect(string = PUBLICATION, pattern = regex(&quot;observer&quot;, ignore_case = T)  ) ~ &quot;The Observer&quot;,
+      str_detect(string = PUBLICATION, pattern = regex(&quot; sun &quot;, ignore_case = T)  ) ~ &quot;The Sun&quot;,
+      str_detect(string = PUBLICATION, pattern = regex(&quot;times&quot;, ignore_case = T)  ) ~ &quot;Times&quot;
+    )
+  )
+spike1_unique %&gt;% 
+  select(publication_simplified) %&gt;% 
+  distinct() #11 publications, cool.</code></pre>
+<pre><code># A tibble: 11 x 1
+   publication_simplified
+   &lt;chr&gt;                 
+ 1 The Independent       
+ 2 Daily Mirror          
+ 3 Daily Mail            
+ 4 The Express           
+ 5 The Guardian          
+ 6 Daily Telegraph       
+ 7 The Observer          
+ 8 Times                 
+ 9 The Sun               
+10 People                
+11 Daily Star            </code></pre>
+<pre class="r"><code># **1.5. add publication type and politics==== 
+spike1_unique &lt;- spike1_unique %&gt;% 
+  mutate( publication_politics= case_when(
+    str_detect(string = publication_simplified, pattern = regex(&quot;mail&quot;, ignore_case = T)  ) ~ &quot;right&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;mirror&quot;, ignore_case = T)  ) ~ &quot;centre-left&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;people&quot;, ignore_case = T)  ) ~ &quot;centre-left&quot;,#exclude
+    str_detect(string = publication_simplified, pattern = regex(&quot;star&quot;, ignore_case = T)  ) ~ &quot;non-political&quot;, #exclude
+    str_detect(string = publication_simplified, pattern = regex(&quot;express&quot;, ignore_case = T)  ) ~ &quot;right&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;independent&quot;, ignore_case = T)  ) ~ &quot;centre&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;telegraph&quot;, ignore_case = T)  ) ~ &quot;centre-right&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;guardian&quot;, ignore_case = T)  ) ~ &quot;centre-left&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;observer&quot;, ignore_case = T)  ) ~ &quot;centre-left&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;the sun&quot;, ignore_case = T)  ) ~ &quot;right&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;times&quot;, ignore_case = T)  ) ~ &quot;centre-right&quot;
+  )
+  ) %&gt;% 
+  mutate(publication_format= case_when(
+    str_detect(string = publication_simplified, pattern = regex(&quot;mail&quot;, ignore_case = T)  ) ~ &quot;tabloid&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;mirror&quot;, ignore_case = T)  ) ~ &quot;tabloid&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;people&quot;, ignore_case = T)  ) ~ &quot;tabloid&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;star&quot;, ignore_case = T)  ) ~ &quot;tabloid&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;express&quot;, ignore_case = T)  ) ~ &quot;tabloid&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;independent&quot;, ignore_case = T)  ) ~ &quot;online&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;telegraph&quot;, ignore_case = T)  ) ~ &quot;broadsheet&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;guardian&quot;, ignore_case = T)  ) ~ &quot;broadsheet&quot;, #i guess it&#39;s tabloid sized now
+    str_detect(string = publication_simplified, pattern = regex(&quot;observer&quot;, ignore_case = T)  ) ~ &quot;broadsheet&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;the sun&quot;, ignore_case = T)  ) ~ &quot;tabloid&quot;,
+    str_detect(string = publication_simplified, pattern = regex(&quot;times&quot;, ignore_case = T)  ) ~ &quot;broadsheet&quot;
+  )
+  )
+
+# **1.6. take a look at some summaries====
+spike1_unique %&gt;% group_by(publication_simplified) %&gt;% summarise(n=n())</code></pre>
+<pre><code># A tibble: 11 x 2
+   publication_simplified     n
+   &lt;chr&gt;                  &lt;int&gt;
+ 1 Daily Mail               391
+ 2 Daily Mirror             240
+ 3 Daily Star                18
+ 4 Daily Telegraph          554
+ 5 People                     7
+ 6 The Express              710
+ 7 The Guardian             298
+ 8 The Independent          790
+ 9 The Observer              32
+10 The Sun                  123
+11 Times                    221</code></pre>
+<pre class="r"><code>spike1_unique %&gt;% group_by(publication_politics) %&gt;% summarise(n=n())</code></pre>
+<pre><code># A tibble: 5 x 2
+  publication_politics     n
+  &lt;chr&gt;                &lt;int&gt;
+1 centre                 790
+2 centre-left            577
+3 centre-right           775
+4 non-political           18
+5 right                 1224</code></pre>
+<pre class="r"><code>spike1_unique %&gt;% group_by(publication_format) %&gt;% summarise(n=n())</code></pre>
+<pre><code># A tibble: 3 x 2
+  publication_format     n
+  &lt;chr&gt;              &lt;int&gt;
+1 broadsheet          1105
+2 online               790
+3 tabloid             1489</code></pre>
+<pre class="r"><code>spike1_unique %&gt;% group_by(publication_simplified,publication_format,publication_politics) %&gt;% summarise(n=n())</code></pre>
+<pre><code># A tibble: 11 x 4
+# Groups:   publication_simplified, publication_format [11]
+   publication_simplified publication_format publication_politics     n
+   &lt;chr&gt;                  &lt;chr&gt;              &lt;chr&gt;                &lt;int&gt;
+ 1 Daily Mail             tabloid            right                  391
+ 2 Daily Mirror           tabloid            centre-left            240
+ 3 Daily Star             tabloid            non-political           18
+ 4 Daily Telegraph        broadsheet         centre-right           554
+ 5 People                 tabloid            centre-left              7
+ 6 The Express            tabloid            right                  710
+ 7 The Guardian           broadsheet         centre-left            298
+ 8 The Independent        online             centre                 790
+ 9 The Observer           broadsheet         centre-left             32
+10 The Sun                tabloid            right                  123
+11 Times                  broadsheet         centre-right           221</code></pre>
+<pre class="r"><code>library(topicmodels)
+library(tm)</code></pre>
+<pre><code>Loading required package: NLP</code></pre>
+<pre><code>
+Attaching package: &#39;NLP&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:ggplot2&#39;:
+
+    annotate</code></pre>
+<pre class="r"><code>spike1_tm &lt;- spike1_unique %&gt;% 
+  select(headline_low)
+
+headlines_corpus &lt;- Corpus(VectorSource(spike1_tm)) %&gt;% 
+  tm_map( removeWords, stopwords(&quot;english&quot;)) %&gt;% 
+  tm_map( removeWords, stopwords(&quot;SMART&quot;))#remove stop words</code></pre>
+<pre><code>Warning in tm_map.SimpleCorpus(., removeWords, stopwords(&quot;english&quot;)):
+transformation drops documents</code></pre>
+<pre><code>Warning in tm_map.SimpleCorpus(., removeWords, stopwords(&quot;SMART&quot;)):
+transformation drops documents</code></pre>
+<pre class="r"><code>headlines_dtm &lt;- DocumentTermMatrix(headlines_corpus)
+headlines_lda &lt;- LDA(headlines_dtm, k=10, control = list(seed=1234))
+
+headlines_lda %&gt;% summary()</code></pre>
+<pre><code> Length   Class    Mode 
+      1 LDA_VEM      S4 </code></pre>
+<pre class="r"><code>library(tidytext)
+headlines_topics &lt;- tidy(headlines_lda, matrix=&quot;beta&quot;)
+headlines_topics</code></pre>
+<pre><code># A tibble: 113,530 x 3
+   topic term        beta
+   &lt;int&gt; &lt;chr&gt;      &lt;dbl&gt;
+ 1     1 !&#39;:   0.0000299 
+ 2     2 !&#39;:   0.00000318
+ 3     3 !&#39;:   0.0000380 
+ 4     4 !&#39;:   0.0000518 
+ 5     5 !&#39;:   0.0000267 
+ 6     6 !&#39;:   0.0000581 
+ 7     7 !&#39;:   0.0000116 
+ 8     8 !&#39;:   0.0000370 
+ 9     9 !&#39;:   0.00000474
+10    10 !&#39;:   0.00000661
+# … with 113,520 more rows</code></pre>
+<pre class="r"><code>headlines_top_terms &lt;- headlines_topics %&gt;%
+  group_by(topic) %&gt;%
+  top_n(15, beta) %&gt;%
+  ungroup() %&gt;%
+  arrange(topic, -beta)
+
+headlines_top_terms</code></pre>
+<pre><code># A tibble: 150 x 3
+   topic term           beta
+   &lt;int&gt; &lt;chr&gt;         &lt;dbl&gt;
+ 1     1 brexit      0.0263 
+ 2     1 vote        0.0129 
+ 3     1 &quot;\&quot;brexit&quot;  0.00962
+ 4     1 court       0.00897
+ 5     1 &quot;brexit\&quot;,&quot; 0.00784
+ 6     1 brexit;     0.00708
+ 7     1 trump       0.00660
+ 8     1 mps         0.00615
+ 9     1 brexit,     0.00581
+10     1 article     0.00537
+# … with 140 more rows</code></pre>
+<pre class="r"><code>headlines_top_terms %&gt;%
+  mutate(term = reorder(term, beta)) %&gt;%
+  ggplot(aes(term, beta, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = &quot;free&quot;) +
+  coord_flip()+
+  labs(title=&quot;Spike1&quot;)+
+  hrbrthemes::theme_ipsum_rc()</code></pre>
+<p><img src="figure/topic_detection.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="enter-text-miner" class="section level2">
+<h2>Enter Text miner</h2>
+<pre class="r"><code>library(textmineR)</code></pre>
+<pre><code>Loading required package: Matrix</code></pre>
+<pre><code>
+Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:tidyr&#39;:
+
+    expand, pack, unpack</code></pre>
+<pre><code>
+Attaching package: &#39;textmineR&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:Matrix&#39;:
+
+    update</code></pre>
+<pre><code>The following object is masked from &#39;package:topicmodels&#39;:
+
+    posterior</code></pre>
+<pre><code>The following object is masked from &#39;package:stats&#39;:
+
+    update</code></pre>
+<pre class="r"><code>headlines_textminer_dtm &lt;- CreateDtm(doc_vec = spike1_unique$headline_low,
+            doc_names = spike1_unique$headline_id,
+            ngram_window = c(1, 3),
+            stopword_vec = c(tm::stopwords(&quot;english&quot;), # stopwords from tm
+                            tm::stopwords(&quot;SMART&quot;)), # this is the default value
+            lower = TRUE,
+            remove_punctuation = FALSE,
+            remove_numbers = FALSE, 
+            verbose = TRUE,
+            cpus = 4)</code></pre>
+<pre><code>
+  |                                                                       
+  |=======                                                          |  10%
+  |                                                                       
+  |=============                                                    |  20%
+  |                                                                       
+  |====================                                             |  30%
+  |                                                                       
+  |==========================                                       |  40%
+  |                                                                       
+  |=================================                                |  50%
+  |                                                                       
+  |=======================================                          |  60%
+  |                                                                       
+  |==============================================                   |  70%
+  |                                                                       
+  |====================================================             |  80%
+  |                                                                       
+  |===========================================================      |  90%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |=======                                                          |  10%
+  |                                                                       
+  |=============                                                    |  20%
+  |                                                                       
+  |====================                                             |  30%
+  |                                                                       
+  |==========================                                       |  40%
+  |                                                                       
+  |=================================                                |  50%
+  |                                                                       
+  |=======================================                          |  60%
+  |                                                                       
+  |==============================================                   |  70%
+  |                                                                       
+  |====================================================             |  80%
+  |                                                                       
+  |===========================================================      |  90%
+  |                                                                       
+  |=================================================================| 100%</code></pre>
+<pre class="r"><code>optimise_k_func &lt;- function(x){
+headlines_textminer_model &lt;- FitLdaModel(dtm = headlines_textminer_dtm, 
+                     k = x, 
+                     iterations = 200, # i recommend a larger value, 500 or more
+                     alpha = 0.1, # this is the default value
+                     beta = 0.05, # this is the default value
+                     cpus = 4) 
+
+headlines_textminer_model$r2 &lt;- CalcTopicModelR2(dtm = headlines_textminer_dtm, 
+                             phi = headlines_textminer_model$phi,
+                             theta = headlines_textminer_model$theta,
+                             cpus = 4)
+
+headlines_textminer_model$coherence &lt;- CalcProbCoherence(phi = headlines_textminer_model$phi,
+                                                         dtm = headlines_textminer_dtm, 
+                                                         M = 5)
+
+results &lt;- tibble(k_value=x,r2=headlines_textminer_model$r2, coherence=headlines_textminer_model$coherence)
+print(results)
+}
+
+k_values &lt;- seq(5,100,5)
+library(furrr)</code></pre>
+<pre><code>Loading required package: future</code></pre>
+<pre class="r"><code>plan(multicore)
+optimise_k_results &lt;- future_map_dfr(k_values,optimise_k_func)</code></pre>
+<pre><code># A tibble: 5 x 3
+  k_value      r2 coherence
+    &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+1       5 0.00487    0.0330
+2       5 0.00487    0.0252
+3       5 0.00487    0.0847
+4       5 0.00487    0.259 
+5       5 0.00487    0.0180
+# A tibble: 10 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      10 0.0114    0.259 
+ 2      10 0.0114    0.0111
+ 3      10 0.0114    0.0775
+ 4      10 0.0114    0.0404
+ 5      10 0.0114    0.0247
+ 6      10 0.0114    0.358 
+ 7      10 0.0114    0.180 
+ 8      10 0.0114    0.0305
+ 9      10 0.0114    0.0666
+10      10 0.0114    0.156 
+# A tibble: 15 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      15 0.0156    0.0549
+ 2      15 0.0156    0.114 
+ 3      15 0.0156    0.0405
+ 4      15 0.0156    0.155 
+ 5      15 0.0156    0.0903
+ 6      15 0.0156    0.0840
+ 7      15 0.0156    0.112 
+ 8      15 0.0156    0.0506
+ 9      15 0.0156    0.0714
+10      15 0.0156    0.262 
+11      15 0.0156    0.122 
+12      15 0.0156    0.0726
+13      15 0.0156    0.254 
+14      15 0.0156    0.0831
+15      15 0.0156    0.0231
+# A tibble: 20 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      20 0.0164  0.0373  
+ 2      20 0.0164  0.176   
+ 3      20 0.0164  0.0683  
+ 4      20 0.0164  0.326   
+ 5      20 0.0164  0.0432  
+ 6      20 0.0164  0.0626  
+ 7      20 0.0164  0.0727  
+ 8      20 0.0164  0.131   
+ 9      20 0.0164  0.00724 
+10      20 0.0164  0.0772  
+11      20 0.0164  0.0409  
+12      20 0.0164 -0.000826
+13      20 0.0164  0.103   
+14      20 0.0164  0.185   
+15      20 0.0164  0.0635  
+16      20 0.0164  0.0637  
+17      20 0.0164  0.160   
+18      20 0.0164  0.0467  
+19      20 0.0164  0.0917  
+20      20 0.0164  0.0210  
+# A tibble: 25 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      25 0.0182    0.104 
+ 2      25 0.0182    0.0782
+ 3      25 0.0182    0.138 
+ 4      25 0.0182    0.0724
+ 5      25 0.0182    0.0804
+ 6      25 0.0182    0.284 
+ 7      25 0.0182    0.0259
+ 8      25 0.0182    0.564 
+ 9      25 0.0182    0.0286
+10      25 0.0182    0.0342
+# … with 15 more rows
+# A tibble: 30 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      30 0.0188   0.168  
+ 2      30 0.0188   0.0118 
+ 3      30 0.0188   0.0608 
+ 4      30 0.0188   0.154  
+ 5      30 0.0188   0.180  
+ 6      30 0.0188   0.218  
+ 7      30 0.0188   0.0484 
+ 8      30 0.0188   0.0766 
+ 9      30 0.0188  -0.00175
+10      30 0.0188   0.0785 
+# … with 20 more rows
+# A tibble: 35 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      35 0.0188   0.00361
+ 2      35 0.0188   0.0190 
+ 3      35 0.0188   0.206  
+ 4      35 0.0188   0.105  
+ 5      35 0.0188   0.104  
+ 6      35 0.0188   0.0807 
+ 7      35 0.0188   0.168  
+ 8      35 0.0188   0.0116 
+ 9      35 0.0188   0.110  
+10      35 0.0188   0.0731 
+# … with 25 more rows
+# A tibble: 40 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      40 0.0183   0.195  
+ 2      40 0.0183   0.00667
+ 3      40 0.0183   0.252  
+ 4      40 0.0183   0.0826 
+ 5      40 0.0183   0.195  
+ 6      40 0.0183   0.0676 
+ 7      40 0.0183   0.0119 
+ 8      40 0.0183   0.0234 
+ 9      40 0.0183   0.0193 
+10      40 0.0183   0.00546
+# … with 30 more rows
+# A tibble: 45 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      45 0.0177    0.208 
+ 2      45 0.0177    0.0517
+ 3      45 0.0177    0.217 
+ 4      45 0.0177    0.0851
+ 5      45 0.0177    0.0991
+ 6      45 0.0177    0.0861
+ 7      45 0.0177    0.0815
+ 8      45 0.0177    0.312 
+ 9      45 0.0177    0.124 
+10      45 0.0177    0.186 
+# … with 35 more rows
+# A tibble: 50 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      50 0.0177   0.0996 
+ 2      50 0.0177   0.00879
+ 3      50 0.0177   0.0457 
+ 4      50 0.0177   0.0521 
+ 5      50 0.0177   0.118  
+ 6      50 0.0177   0.00229
+ 7      50 0.0177   0.0871 
+ 8      50 0.0177   0.0963 
+ 9      50 0.0177   0.0772 
+10      50 0.0177   0.323  
+# … with 40 more rows
+# A tibble: 55 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      55 0.0156    0.252 
+ 2      55 0.0156    0.0191
+ 3      55 0.0156    0.107 
+ 4      55 0.0156    0.0800
+ 5      55 0.0156    0.0736
+ 6      55 0.0156    0.118 
+ 7      55 0.0156    0.139 
+ 8      55 0.0156    0.191 
+ 9      55 0.0156    0.320 
+10      55 0.0156    0.0373
+# … with 45 more rows
+# A tibble: 60 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      60 0.0156   0.00905
+ 2      60 0.0156   0.104  
+ 3      60 0.0156   0.0466 
+ 4      60 0.0156   0.190  
+ 5      60 0.0156   0.0359 
+ 6      60 0.0156   0.0798 
+ 7      60 0.0156   0.105  
+ 8      60 0.0156   0.246  
+ 9      60 0.0156   0.0717 
+10      60 0.0156   0.0268 
+# … with 50 more rows
+# A tibble: 65 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      65 0.0154    0.0660
+ 2      65 0.0154    0.392 
+ 3      65 0.0154    0.0143
+ 4      65 0.0154    0.531 
+ 5      65 0.0154    0.164 
+ 6      65 0.0154    0.0292
+ 7      65 0.0154    0.0307
+ 8      65 0.0154    0.0417
+ 9      65 0.0154    0.115 
+10      65 0.0154    0.0425
+# … with 55 more rows
+# A tibble: 70 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      70 0.0132    0.275 
+ 2      70 0.0132    0.0952
+ 3      70 0.0132    0.154 
+ 4      70 0.0132    0.128 
+ 5      70 0.0132    0.0680
+ 6      70 0.0132    0.250 
+ 7      70 0.0132    0.0115
+ 8      70 0.0132    0.0242
+ 9      70 0.0132    0.129 
+10      70 0.0132    0.530 
+# … with 60 more rows
+# A tibble: 75 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      75 0.0118    0.0404
+ 2      75 0.0118    0.0557
+ 3      75 0.0118    0.0647
+ 4      75 0.0118    0.0821
+ 5      75 0.0118    0.0570
+ 6      75 0.0118    0.165 
+ 7      75 0.0118    0.0745
+ 8      75 0.0118    0.214 
+ 9      75 0.0118    0.0772
+10      75 0.0118    0.217 
+# … with 65 more rows
+# A tibble: 80 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      80 0.0112    0.0504
+ 2      80 0.0112    0.0235
+ 3      80 0.0112    0.0399
+ 4      80 0.0112    0.0650
+ 5      80 0.0112    0.0227
+ 6      80 0.0112    0.110 
+ 7      80 0.0112    0.0190
+ 8      80 0.0112    0.0546
+ 9      80 0.0112    0.119 
+10      80 0.0112    0.115 
+# … with 70 more rows
+# A tibble: 85 x 3
+   k_value     r2 coherence
+     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+ 1      85 0.0105    0.317 
+ 2      85 0.0105    0.0355
+ 3      85 0.0105    0.224 
+ 4      85 0.0105    0.249 
+ 5      85 0.0105    0.0312
+ 6      85 0.0105    0.0508
+ 7      85 0.0105    0.0596
+ 8      85 0.0105    0.569 
+ 9      85 0.0105    0.0861
+10      85 0.0105    0.0721
+# … with 75 more rows
+# A tibble: 90 x 3
+   k_value      r2 coherence
+     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+ 1      90 0.00898    0.189 
+ 2      90 0.00898    0.0970
+ 3      90 0.00898    0.0581
+ 4      90 0.00898    0.0655
+ 5      90 0.00898    0.0967
+ 6      90 0.00898    0.244 
+ 7      90 0.00898    0.612 
+ 8      90 0.00898    0.0201
+ 9      90 0.00898    0.111 
+10      90 0.00898    0.154 
+# … with 80 more rows
+# A tibble: 95 x 3
+   k_value      r2 coherence
+     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+ 1      95 0.00783    0.0751
+ 2      95 0.00783    0.254 
+ 3      95 0.00783    0.0901
+ 4      95 0.00783    0.0935
+ 5      95 0.00783    0.0565
+ 6      95 0.00783    0.222 
+ 7      95 0.00783    0.0588
+ 8      95 0.00783    0.331 
+ 9      95 0.00783    0.0213
+10      95 0.00783    0.385 
+# … with 85 more rows
+# A tibble: 100 x 3
+   k_value      r2 coherence
+     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+ 1     100 0.00704    0.0585
+ 2     100 0.00704    0.582 
+ 3     100 0.00704    0.126 
+ 4     100 0.00704    0.0262
+ 5     100 0.00704    0.0206
+ 6     100 0.00704    0.331 
+ 7     100 0.00704    0.0265
+ 8     100 0.00704    0.310 
+ 9     100 0.00704    0.482 
+10     100 0.00704    0.318 
+# … with 90 more rows</code></pre>
+<pre class="r"><code>optimise_k_results %&gt;% 
+  group_by(k_value, r2) %&gt;% 
+  summarise(coherence=mean(coherence)) %&gt;% View()
+
+
+headlines_textminer_model &lt;- FitLdaModel(dtm = headlines_textminer_dtm, 
+                                         k = 40, 
+                                         iterations = 1000, # i recommend a larger value, 500 or more
+                                         alpha = 0.1, # this is the default value
+                                         beta = 0.05, # this is the default value
+                                         cpus = 4) 
+
+headlines_textminer_model$ll &lt;- CalcLikelihood(dtm = headlines_textminer_dtm, 
+                           phi = headlines_textminer_model$phi, 
+                           theta = headlines_textminer_model$theta,
+                           cpus = 2)
+headlines_textminer_model$ll</code></pre>
+<pre><code>[1] -675879.9</code></pre>
+<pre class="r"><code>headlines_textminer_model$coherence &lt;- CalcProbCoherence(phi = headlines_textminer_model$phi, dtm = headlines_textminer_dtm, M = 5)
+summary(headlines_textminer_model$coherence)</code></pre>
+<pre><code>    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+0.007229 0.050837 0.073718 0.120547 0.181022 0.470649 </code></pre>
+<pre class="r"><code>headlines_textminer_model$coherence %&gt;% hist(main=&quot;Histogram of probabilistic coherence&quot;)</code></pre>
+<p><img src="figure/topic_detection.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>headlines_textminer_model$top_terms &lt;- GetTopTerms(phi = headlines_textminer_model$phi, M = 15)
+head(headlines_textminer_model$top_terms,15) %&gt;% View()
+
+
+headlines_textminer_model$prevalence &lt;- colSums(headlines_textminer_model$theta) / sum(headlines_textminer_model$theta) * 100
+
+# textmineR has a naive topic labeling tool based on probable bigrams
+headlines_textminer_model$labels &lt;- LabelTopics(assignments = headlines_textminer_model$theta &gt; 0.05, 
+                            dtm = headlines_textminer_dtm,
+                            M = 1)
+
+head(headlines_textminer_model$labels)</code></pre>
+<pre><code>    label_1           
+t_1 &quot;brexit_boost&quot;    
+t_2 &quot;eu_referendum&quot;   
+t_3 &quot;block_brexit&quot;    
+t_4 &quot;donald_trump&quot;    
+t_5 &quot;article_50&quot;      
+t_6 &quot;northern_ireland&quot;</code></pre>
+<pre class="r"><code>headlines_textminer_model$summary &lt;- data.frame(topic = rownames(headlines_textminer_model$phi),
+                           label = headlines_textminer_model$labels,
+                           coherence = round(headlines_textminer_model$coherence, 3),
+                           prevalence = round(headlines_textminer_model$prevalence,3),
+                           top_terms = apply(headlines_textminer_model$top_terms, 2, function(x){
+                             paste(x, collapse = &quot;, &quot;)
+                           }),
+                           stringsAsFactors = FALSE)
+
+headlines_textminer_model$summary[ order(headlines_textminer_model$summary$prevalence, decreasing = TRUE) , ][ 1:40 , ] %&gt;%
+  write_csv(here::here(&quot;data/topic_models_spike1.csv&quot;)) #it seems k=80 is the best performing model but too many topics. k=40 is not too bad as well
+
+headlines_textminer_model$summary[ order(headlines_textminer_model$summary$prevalence, decreasing = TRUE) , ][ 1:40 , ] %&gt;% 
+  as_tibble() %&gt;% 
+  rmarkdown::paged_table()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["topic"],"name":[1],"type":["chr"],"align":["left"]},{"label":["label_1"],"name":[2],"type":["chr"],"align":["left"]},{"label":["coherence"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["prevalence"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["top_terms"],"name":[5],"type":["chr"],"align":["left"]}],"data":[{"1":"t_5","2":"article_50","3":"0.471","4":"3.321","5":"50, article_50, article, court, legal, brexit, challenge, supreme, supreme_court, high, high_court, ruling, vote, legal_challenge, trigger"},{"1":"t_22","2":"post_brexit","3":"0.157","4":"3.184","5":"post, post_brexit, brexit, trade, britain, deal, eu, trade_deal, uk, brexit_britain, free, free_trade, india, post_brexit_britain, brexit_trade"},{"1":"t_24","2":"nicola_sturgeon","3":"0.242","4":"3.061","5":"brexit, sturgeon, scotland, nicola, nicola_sturgeon, talks, snp, scottish, brexit_talks, deal, minister, theresa, wales, battle, sturgeon's"},{"1":"t_14","2":"letters_editor","3":"0.076","4":"2.932","5":"brexit, letters, blair, referendum, editor, tony, letters_editor, politics, tony_blair, eu, pm, voters, remainers, brexit_letters, eu_referendum"},{"1":"t_12","2":"brexit_negotiations","3":"0.028","4":"2.766","5":"eu, brexit, theresa, negotiations, talks, leaders, brexit_negotiations, european, brexit_talks, eu_leaders, tells, summit, pm, french, uk"},{"1":"t_16","2":"brexit_vote","3":"0.082","4":"2.751","5":"vote, brexit, uk, economy, brexit_vote, growth, months, uk_economy, figures, fear, forecasts, project, brexit_economy, show, project_fear"},{"1":"t_35","2":"leave_eu","3":"0.016","4":"2.734","5":"brexit, eu, britain, leave, threat, leave_eu, warns, uk, pm, happen, remain, europe, germany, irish, experts"},{"1":"t_4","2":"donald_trump","3":"0.180","4":"2.684","5":"trump, donald, brexit, election, donald_trump, victory, trump's, win, president, donald_trump's, trump_brexit, britain, brexit_donald, trump_victory, donald_trump_brexit"},{"1":"t_38","2":"blames_brexit","3":"0.059","4":"2.646","5":"brexit, pound, price, prices, sterling, fall, rise, blames, hikes, food, due, cost, year, increase, blames_brexit"},{"1":"t_30","2":"high_court","3":"0.322","4":"2.610","5":"court, high, brexit, ruling, high_court, court_ruling, high_court_ruling, brexit_ruling, case, leave, government, mps, theresa, brexit_high, parliament"},{"1":"t_15","2":"brexit_plan","3":"0.049","4":"2.609","5":"brexit, plan, theresa, strategy, government, brexit_plan, may's, memo, leaked, brexit_strategy, theresa_may's, cabinet, position, plan_brexit, work"},{"1":"t_25","2":"brexit_deal","3":"0.044","4":"2.606","5":"brexit, deal, brexit_deal, service, years, home, theresa, comment, opinion, civil, abroad, home_abroad, pm, comment_home_abroad, opinion_matrix_comment"},{"1":"t_33","2":"autumn_statement","3":"0.281","4":"2.586","5":"statement, autumn, chancellor, brexit, hammond, autumn_statement, philip, philip_hammond, budget, hole, black, black_hole, economic, hammond's, growth"},{"1":"t_34","2":"tory_mp","3":"0.066","4":"2.583","5":"brexit, mp, tory, vote, mps, tory_mp, lib, referendum, theresa, clegg, lib_dems, dems, lib_dem, dem, labour"},{"1":"t_18","2":"brexit_latest","3":"0.048","4":"2.564","5":"brexit, latest, sales, cent, years, growth, fear, boom, inflation, doom, biggest, brexit_latest, hit, rise, wrong"},{"1":"t_23","2":"hard_brexit","3":"0.108","4":"2.538","5":"hard, brexit, hard_brexit, leave, uk, soft, cost, soft_brexit, blues, french, brexit_blues, britain, fears, warns, brexit_cost"},{"1":"t_8","2":"brexit_ruling","3":"0.065","4":"2.526","5":"brexit, judges, law, rule, attacks, lord, brexit_ruling, truss, ruling, liz, liz_truss, row, people, press, justice"},{"1":"t_27","2":"nigel_farage","3":"0.253","4":"2.518","5":"brexit, farage, nigel, nigel_farage, ukip, leader, campaign, mr, party, lead, claims, mr_brexit, back, cash, shock"},{"1":"t_37","2":"bank_england","3":"0.259","4":"2.510","5":"brexit, bank, carney, england, mark, bank_england, turmoil, mark_carney, chief, brexit_turmoil, forecast, wrong, mirror, admits, governor"},{"1":"t_3","2":"block_brexit","3":"0.131","4":"2.503","5":"brexit, block, labour, corbyn, block_brexit, miller, movement, jeremy, gina, gina_miller, jeremy_corbyn, free, free_movement, campaigner, merkel"},{"1":"t_39","2":"theresa_may's","3":"0.184","4":"2.473","5":"brexit, may's, theresa, plans, theresa_may's, means, may's_brexit, britain, brexit_plans, brexit_means, brexit_britain, good, news, theresa_may's_brexit, shows"},{"1":"t_1","2":"brexit_boost","3":"0.081","4":"2.469","5":"brexit, boost, brexit_boost, john, mcdonnell, put, john_mcdonnell, tax, news, life, ahead, chancellor, labour's, brexit_news, shadow"},{"1":"t_36","2":"eu_exit","3":"0.107","4":"2.457","5":"eu, brexit, exit, eu_exit, britain's, parliament, mps, withdrawal, work, brussels, voters, set, poll, eu_withdrawal, finds"},{"1":"t_13","2":"boris_johnson","3":"0.071","4":"2.420","5":"brexit, election, boris, johnson, general, boris_johnson, general_election, mps, early, call, street, foreign, battle, wrong, ministers"},{"1":"t_9","2":"warns_brexit","3":"0.023","4":"2.395","5":"brexit, uk, top, warns, business, boss, border, martin, warns_brexit, warn, ministers, fury, warning, wpp, eu's"},{"1":"t_26","2":"brexit_vote","3":"0.059","4":"2.393","5":"vote, brexit_vote, brexit, european, rise, wake, european_union, union, british, wake_brexit, uk, ryanair, united, businesses, hit"},{"1":"t_17","2":"brexit_uncertainty","3":"0.038","4":"2.359","5":"brexit, fears, uncertainty, amid, business, businesses, brexit_uncertainty, prices, brexit_fears, friday, black, black_friday, fears_brexit, sales, jobs"},{"1":"t_28","2":"brexit_trump","3":"0.051","4":"2.351","5":"brexit, trump, brexit_trump, anti, trump_brexit, time, hand, longer, question, anti_brexit, campaign, opposition, class, left, working"},{"1":"t_20","2":"brexit_britain","3":"0.051","4":"2.311","5":"brexit, london, banks, uk, britain, jobs, city, brexit_britain, major, quit, investment, financial, year, bankers, rbs"},{"1":"t_32","2":"matrix_day","3":"0.067","4":"2.308","5":"brexit, day, business, michael, gove, matrix, matrix_day, matrix_day_glance, day_glance, glance, michael_gove, business_matrix_day, benn, business_matrix, committee"},{"1":"t_40","2":"brexit_deal","3":"0.094","4":"2.281","5":"brexit, nissan, deal, britain, sunderland, business, car, build, uk, industry, put, secretary, government, business_secretary, bid"},{"1":"t_10","2":"david_davis","3":"0.186","4":"2.251","5":"brexit, david, davis, david_davis, group, stop, secretary, european, sir, blocked, brexit_secretary, story, mep, cover, funding"},{"1":"t_7","2":"single_market","3":"0.280","4":"2.247","5":"market, single_market, single, uk, eu, brexit, stay, britain, government, union, demand, british, year, leave, citizens"},{"1":"t_11","2":"prime_minister","3":"0.311","4":"2.198","5":"minister, brexit, prime, prime_minister, theresa, workers, year, word, warns, word_year, minister_warns, comments, brexit_minister, german, british"},{"1":"t_6","2":"northern_ireland","3":"0.062","4":"2.196","5":"brexit, people, voters, ireland, northern_ireland, northern, show, bbc, big, country, political, brexit_voters, voting, immigration, heard"},{"1":"t_2","2":"eu_referendum","3":"0.048","4":"2.190","5":"referendum, mps, eu, brexit, people, immigration, result, made, british, back, eu_referendum, hate, told, warns, referendum_result"},{"1":"t_19","2":"leaving_eu","3":"0.078","4":"2.182","5":"eu, brexit, leaving, leaving_eu, crisis, uk, constitutional, nhs, faces, warns, ahead, staff, constitutional_crisis, britain's, britain"},{"1":"t_31","2":"ftse_100","3":"0.071","4":"2.129","5":"brexit, city, business, mail, sun, daily, hit, ftse, news, sun.co.uk, group, royal, 100, euro, november"},{"1":"t_29","2":"8612_7000","3":"0.014","4":"2.091","5":"brexit, uk, make, 10, british, success, 7000, 8612, 8612_7000, company, lower, street, year, building, lose"},{"1":"t_21","2":"house_lords","3":"0.007","4":"2.066","5":"brexit, europe, power, world, pre, fight, bill, students, lords, house_lords, war, pay, week, pre_brexit, reports"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.1 (2019-07-05)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS Mojave 10.14.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_GB.UTF-8/en_GB.UTF-8/en_GB.UTF-8/C/en_GB.UTF-8/en_GB.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] furrr_0.1.0       future_1.14.0     textmineR_3.0.4  
+ [4] Matrix_1.2-17     tidytext_0.2.2    tm_0.7-6         
+ [7] NLP_0.2-0         topicmodels_0.2-8 forcats_0.4.0    
+[10] stringr_1.4.0     dplyr_0.8.3       purrr_0.3.2      
+[13] readr_1.3.1       tidyr_1.0.0       tibble_2.1.3     
+[16] ggplot2_3.2.1     tidyverse_1.2.1  
+
+loaded via a namespace (and not attached):
+ [1] nlme_3.1-141         fs_1.3.1             lubridate_1.7.4     
+ [4] httr_1.4.1           rprojroot_1.3-2      SnowballC_0.6.0     
+ [7] tools_3.6.1          backports_1.1.5      utf8_1.1.4          
+[10] R6_2.4.0             lazyeval_0.2.2       colorspace_1.4-1    
+[13] withr_2.1.2          tidyselect_0.2.5     compiler_3.6.1      
+[16] git2r_0.26.1         extrafontdb_1.0      cli_1.1.0           
+[19] rvest_0.3.4          formatR_1.7          xml2_1.2.2          
+[22] labeling_0.3         slam_0.1-45          scales_1.0.0        
+[25] systemfonts_0.1.1    digest_0.6.23        rmarkdown_1.15      
+[28] pkgconfig_2.0.3      htmltools_0.3.6      extrafont_0.17      
+[31] rlang_0.4.2          readxl_1.3.1         rstudioapi_0.10     
+[34] generics_0.0.2       jsonlite_1.6         tokenizers_0.2.1    
+[37] magrittr_1.5         modeltools_0.2-22    text2vec_0.5.1      
+[40] futile.logger_1.4.3  Rcpp_1.0.3           munsell_0.5.0       
+[43] RcppProgress_0.4.1   fansi_0.4.0          gdtools_0.2.0       
+[46] lifecycle_0.1.0      stringi_1.4.3        whisker_0.4         
+[49] yaml_2.2.0           plyr_1.8.4           grid_3.6.1          
+[52] hrbrthemes_0.6.0     listenv_0.7.0        parallel_3.6.1      
+[55] mlapi_0.1.0          crayon_1.3.4         lattice_0.20-38     
+[58] haven_2.1.1          hms_0.5.2            zeallot_0.1.0       
+[61] knitr_1.25           pillar_1.4.2         codetools_0.2-16    
+[64] reshape2_1.4.3       stopwords_1.0        stats4_3.6.1        
+[67] futile.options_1.0.1 glue_1.3.1           evaluate_0.14       
+[70] lambda.r_1.2.4       RcppParallel_4.4.3   data.table_1.12.2   
+[73] modelr_0.1.5         foreach_1.4.7        vctrs_0.2.1         
+[76] Rttf2pt1_1.3.7       cellranger_1.1.0     gtable_0.3.0        
+[79] assertthat_0.2.1     xfun_0.9             broom_0.5.2         
+[82] janeaustenr_0.1.5    iterators_1.0.12     workflowr_1.4.0     
+[85] globals_0.12.4       here_0.1            </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
