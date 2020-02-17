@@ -1,5 +1,5 @@
 # text_classification
 
-A [workflowr][] project.
+WIP. 
 
-[workflowr]: https://github.com/jdblischak/workflowr
+https://sefabey.github.io/text_classification/docs/index.html
